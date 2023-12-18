@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Te8va/APIbook/internal/app/domain"
 	"github.com/google/uuid"
+
+	"github.com/Te8va/APIbook/internal/app/domain"
 )
 
 type Book struct {
@@ -40,7 +41,7 @@ func (r *Book) GetBookByID(ctx context.Context, id string) (domain.Book, error) 
 	var book domain.Book
 	err = decoder.Decode(&book)
 	if err != nil {
-		return domain.Book{}, fmt.Errorf(domain.ErrDecodingJSON.Error(), err) 
+		return domain.Book{}, fmt.Errorf(domain.ErrDecodingJSON.Error(), err)
 	}
 
 	if book.Status == "deleted" {
@@ -135,7 +136,7 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 		return domain.ErrDeletedBook
 	}
 
-	book.Status = "deleted" 
+	book.Status = "deleted"
 
 	data, err := json.MarshalIndent(book, "", "    ")
 	if err != nil {

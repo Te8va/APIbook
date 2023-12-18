@@ -13,10 +13,13 @@ func reply(w http.ResponseWriter, message interface{}, statusCode int) {
 		handleBookError(w, fmt.Errorf("Error encoding JSON: %v", err))
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	// TODO: do it externally, write status code after write, check write error
 	w.WriteHeader(statusCode)
-	w.Write(response)
-
+	_, err = w.Write(response)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

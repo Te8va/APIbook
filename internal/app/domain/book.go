@@ -5,5 +5,5 @@ type Book struct {
 	Title  string `json:"title"`
 	Author string `json:"author"`
 	Year   int    `json:"data"`
-	Status string `json:"status,omitempty""`
+	Status string `json:"status,omitempty"`
 }
