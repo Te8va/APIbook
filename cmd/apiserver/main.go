@@ -28,7 +28,7 @@ func main() {
 
 	// var bookRep domain.BookRepository = repository.NewFileBookRepository("books.json")
 
-	bookRep := repository.NewFileBookRepository("M:\\GoLang\\APIbook\\cmd\\apiserver\\books") // TODO: use path like that "./books"
+	bookRep := repository.NewFileBookRepository("./cmd/apiserver/books") // TODO: use path like that "./books"
 
 	bookSrv := service.NewBookService(bookRep)
 
