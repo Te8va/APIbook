@@ -26,13 +26,13 @@ func (r *Book) GetBookByID(ctx context.Context, id string) (domain.Book, error) 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	filePath := fmt.Sprintf("%s/book_%s.json", r.FilePath, id) // TODO: check id in handler, it should only contain letters, numbers and -
+	filePath := fmt.Sprintf("%s/book_%s.json", r.FilePath, id)
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return domain.Book{}, domain.ErrBookNotFound
 		}
-		return domain.Book{}, fmt.Errorf(domain.ErrReadingFile.Error(), err) // TODO: read about error wrapping
+		return domain.Book{}, fmt.Errorf(domain.ErrReadingFile.Error(), err)
 	}
 	defer file.Close()
 
@@ -81,7 +81,7 @@ func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Boo
 	defer f.mu.Unlock()
 
 	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) { // TODO: check if it can be done with checking error of os.ReadFile
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return fmt.Errorf(domain.ErrBookNotFound.Error())
 	}
 

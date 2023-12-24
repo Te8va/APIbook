@@ -7,7 +7,6 @@ import (
 )
 
 func reply(w http.ResponseWriter, message interface{}, statusCode int) {
-
 	response, err := json.Marshal(message)
 	if err != nil {
 		handleBookError(w, fmt.Errorf("Error encoding JSON: %v", err))
@@ -15,8 +14,8 @@ func reply(w http.ResponseWriter, message interface{}, statusCode int) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	// TODO: do it externally, write status code after write, check write error
 	w.WriteHeader(statusCode)
+
 	_, err = w.Write(response)
 	if err != nil {
 		fmt.Println(err)

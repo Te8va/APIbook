@@ -4,7 +4,6 @@ import (
 	"errors"
 )
 
-// TODO: read about errors (is it correct to use %v here?), do not capitalize errors
 var (
 	ErrDecodingJSON  = errors.New("Error decoding JSON: %v")
 	ErrEncodingJSON  = errors.New("Error encoding JSON: %v")

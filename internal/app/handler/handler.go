@@ -34,27 +34,18 @@ func (h *Book) SwaggerHandler(res http.ResponseWriter, req *http.Request, p http
 // @Failure 500
 // @Router /books/{id} [get]
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// TODO: use r.Context if you don't need to swap it with some other context/want to cancel e.t.c.
-	ctx := r.Context()
-
 	id := ps.ByName("id")
 
-	book, err := h.srv.GetBookByID(ctx, id)
+	book, err := h.srv.GetBookByID(r.Context(), id)
 	if err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	// TODO: remove this, the case should be handled by handleError
 	if book.ID == "" {
 		http.Error(w, "Book not found", http.StatusNotFound)
 		return
 	}
-
-	// TODO: remove redundant comments
-	// if err := reply(w, book); err != nil {
-	// 	http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-	// }
 
 	reply(w, book, http.StatusOK)
 }
@@ -71,17 +62,14 @@ func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps htt
 // @Failure 400
 // @Router /books [post]
 func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := r.Context()
-
 	defer r.Body.Close()
-	// TODO: use disallow unknown fields
 
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 
 	var newBook domain.Book
 	if err := d.Decode(&newBook); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest) // TODO: change error description
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
@@ -89,7 +77,7 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}
-	id, err := h.srv.AddBook(ctx, newBook)
+	id, err := h.srv.AddBook(r.Context(), newBook)
 	if err != nil {
 		handleBookError(w, err)
 		return
@@ -108,16 +96,14 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 // @Failure 500
 // @Router /books/{id} [delete]
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
 	id := ps.ByName("id")
 
-	if err := h.srv.DeleteBook(ctx, id); err != nil {
+	if err := h.srv.DeleteBook(r.Context(), id); err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	reply(w, "Deleted", http.StatusOK) // TODO: check if status OK is default value, change message to actual one
+	reply(w, "Deleted", http.StatusOK)
 }
 
 // @Tags Books
@@ -132,14 +118,16 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 // @Failure 400
 // @Router /books/{id} [put]
 func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	id := ps.ByName("id") // TODO: you can get the id from book in body
+	id := ps.ByName("id")
 
 	defer r.Body.Close()
 
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+
 	var updatedBook domain.Book
-	err := json.NewDecoder(r.Body).Decode(&updatedBook)
+
+	err := d.Decode(&updatedBook)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -150,7 +138,7 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	if err = h.srv.UpdateBook(ctx, id, updatedBook); err != nil { // TODO: use updatedBook.ID
+	if err = h.srv.UpdateBook(r.Context(), id, updatedBook); err != nil {
 		handleBookError(w, err)
 		return
 	}

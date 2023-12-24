@@ -25,10 +25,7 @@ import (
 // @Schemes http
 
 func main() {
-
-	// var bookRep domain.BookRepository = repository.NewFileBookRepository("books.json")
-
-	bookRep := repository.NewFileBookRepository("./cmd/apiserver/books") // TODO: use path like that "./books"
+	bookRep := repository.NewFileBookRepository("./cmd/apiserver/books")
 
 	bookSrv := service.NewBookService(bookRep)
 
@@ -36,7 +33,6 @@ func main() {
 
 	router := httprouter.New()
 
-	// TODO: make a func to register handlers (if you want)
 	router.GET("/books/:id", middleware.Log(bookHandler.GetBookByIDHandler))
 	router.POST("/books", middleware.Log(bookHandler.AddBookHandler))
 	router.DELETE("/books/:id", middleware.Log(bookHandler.DeleteBookHandler))
@@ -44,7 +40,7 @@ func main() {
 
 	router.GET("/swagger/:any", bookHandler.SwaggerHandler)
 
-	fmt.Println("Сервер запущен на порту 8080") // TODO: use logger instead of println (zap/logrus)
+	fmt.Println("Сервер запущен на порту 8080")
 
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {
