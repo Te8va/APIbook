@@ -6,6 +6,9 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/Te8va/APIbook/docs"
 	"github.com/Te8va/APIbook/internal/app/domain"
 )
 
@@ -15,6 +18,10 @@ type Book struct {
 
 func NewBookHandler(srv domain.BookRepository) *Book {
 	return &Book{srv: srv}
+}
+
+func (h *Book) SwaggerHandler(res http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	httpSwagger.WrapHandler(res, req)
 }
 
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

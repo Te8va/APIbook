@@ -15,7 +15,7 @@ func main() {
 
 	// var bookRep domain.BookRepository = repository.NewFileBookRepository("books.json")
 
-	bookRep := repository.NewFileBookRepository("C:\\Users\\Jane\\go\\APIbook\\cmd\\apiserver\\books") // TODO: use path like that "./books"
+	bookRep := repository.NewFileBookRepository("M:\\GoLang\\APIbook\\cmd\\apiserver\\books") // TODO: use path like that "./books"
 
 	// TODO: add service layer between handler and repository
 	bookHandler := handler.NewBookHandler(bookRep)
@@ -27,6 +27,8 @@ func main() {
 	router.POST("/books", middleware.Log(bookHandler.AddBookHandler))
 	router.DELETE("/books/:id", middleware.Log(bookHandler.DeleteBookHandler))
 	router.PUT("/books/:id", middleware.Log(bookHandler.UpdateBookHandler))
+
+	router.GET("/swagger/:any", bookHandler.SwaggerHandler)
 
 	fmt.Println("Сервер запущен на порту 8080") // TODO: use logger instead of println (zap/logrus)
 

@@ -69,6 +69,7 @@ func (f *Book) AddBook(ctx context.Context, updatedBook domain.Book) error {
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
+		fmt.Println(err)
 		return fmt.Errorf(domain.ErrWritingToFile.Error(), err)
 	}
 
