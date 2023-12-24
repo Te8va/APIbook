@@ -21,7 +21,7 @@ func handleBookError(w http.ResponseWriter, err error) {
 		errorMessage = fmt.Sprintf("Error decoding JSON: %v", err)
 	case errors.Is(err, domain.ErrDeletedBook):
 		statusCode = http.StatusNotFound
-		errorMessage = fmt.Sprintf("Error deleting book: %v", err)
+		//errorMessage = fmt.Sprintf("%v", err)
 	case errors.Is(err, domain.ErrEncodingJSON):
 		statusCode = http.StatusInternalServerError
 		errorMessage = fmt.Sprintf("Error encoding JSON: %v", err)

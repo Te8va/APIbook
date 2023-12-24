@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func (s *Book) GetBookByID(ctx context.Context, id string) (domain.Book, error) 
 	return s.repo.GetBookByID(ctx, id)
 }
 
-func (s *Book) AddBook(ctx context.Context, newBook domain.Book) error {
+func (s *Book) AddBook(ctx context.Context, newBook domain.Book) (string, error) {
 	return s.repo.AddBook(ctx, newBook)
 }
 

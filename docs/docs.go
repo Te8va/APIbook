@@ -15,21 +15,202 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/books": {
+            "post": {
+                "description": "Запрос для добавления информации о новой книге",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос добавления книги",
+                "parameters": [
+                    {
+                        "description": "book info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Book"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/books/{id}": {
+            "get": {
+                "description": "Запрос для получения сохраненной информации о книге",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос чтения информации о книге",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "put": {
+                "description": "Запрос для обновления информации о существующей книге",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос обновления информации о книге",
+                "parameters": [
+                    {
+                        "description": "book info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Book"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Запрос для удаления информации о существующей книге",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос удаления книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Book": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "The author"
+                },
+                "data": {
+                    "type": "integer",
+                    "example": 2023
+                },
+                "id": {
+                    "type": "string",
+                    "example": "8502ab55-6750-4c53-8126-acc1ba19f801"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "deleted"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The book"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "description": "Группа запросов для управления списком книг",
+            "name": "Books"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
+	Schemes:          []string{"http"},
+	Title:            "Books API",
+	Description:      "Сервис хранения информации о книгах",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

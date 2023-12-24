@@ -1,7 +1,196 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Сервис хранения информации о книгах",
+        "title": "Books API",
+        "contact": {},
+        "version": "1.0"
     },
-    "paths": {}
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/books": {
+            "post": {
+                "description": "Запрос для добавления информации о новой книге",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос добавления книги",
+                "parameters": [
+                    {
+                        "description": "book info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Book"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/books/{id}": {
+            "get": {
+                "description": "Запрос для получения сохраненной информации о книге",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос чтения информации о книге",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "put": {
+                "description": "Запрос для обновления информации о существующей книге",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос обновления информации о книге",
+                "parameters": [
+                    {
+                        "description": "book info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Book"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Запрос для удаления информации о существующей книге",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Запрос удаления книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "8502ab55-6750-4c53-8126-acc1ba19f801",
+                        "description": "book id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Book": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "The author"
+                },
+                "data": {
+                    "type": "integer",
+                    "example": 2023
+                },
+                "id": {
+                    "type": "string",
+                    "example": "8502ab55-6750-4c53-8126-acc1ba19f801"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "deleted"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The book"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "description": "Группа запросов для управления списком книг",
+            "name": "Books"
+        }
+    ]
 }

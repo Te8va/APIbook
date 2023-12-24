@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -10,8 +10,9 @@ import (
 
 func Log(next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
-		defer cancel() // TODO: use logger, do not create new context
-		next(w, r.WithContext(ctx), ps)
+		t := time.Now()
+		log.Default().Println("Request to", r.URL, "method", r.Method)
+		next(w, r, ps)
+		log.Default().Println("Time passed", time.Since(t))
 	}
 }

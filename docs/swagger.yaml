@@ -1,4 +1,131 @@
+basePath: /
+definitions:
+  domain.Book:
+    properties:
+      author:
+        example: The author
+        type: string
+      data:
+        example: 2023
+        type: integer
+      id:
+        example: 8502ab55-6750-4c53-8126-acc1ba19f801
+        type: string
+      status:
+        example: deleted
+        type: string
+      title:
+        example: The book
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
-paths: {}
+  description: Сервис хранения информации о книгах
+  title: Books API
+  version: "1.0"
+paths:
+  /books:
+    post:
+      consumes:
+      - application/json
+      description: Запрос для добавления информации о новой книге
+      parameters:
+      - description: book info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Book'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Запрос добавления книги
+      tags:
+      - Books
+  /books/{id}:
+    delete:
+      description: Запрос для удаления информации о существующей книге
+      parameters:
+      - description: book id
+        example: 8502ab55-6750-4c53-8126-acc1ba19f801
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Запрос удаления книги
+      tags:
+      - Books
+    get:
+      description: Запрос для получения сохраненной информации о книге
+      parameters:
+      - description: book id
+        example: 8502ab55-6750-4c53-8126-acc1ba19f801
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Запрос чтения информации о книге
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: Запрос для обновления информации о существующей книге
+      parameters:
+      - description: book info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Book'
+      - description: book id
+        example: 8502ab55-6750-4c53-8126-acc1ba19f801
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Запрос обновления информации о книге
+      tags:
+      - Books
+schemes:
+- http
 swagger: "2.0"
+tags:
+- description: Группа запросов для управления списком книг
+  name: Books

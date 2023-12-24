@@ -24,6 +24,15 @@ func (h *Book) SwaggerHandler(res http.ResponseWriter, req *http.Request, p http
 	httpSwagger.WrapHandler(res, req)
 }
 
+// @Tags Books
+// @Summary Запрос чтения информации о книге
+// @Description Запрос для получения сохраненной информации о книге
+// @Produce json
+// @Param id path string true "book id" Example(8502ab55-6750-4c53-8126-acc1ba19f801)
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Router /books/{id} [get]
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// TODO: use r.Context if you don't need to swap it with some other context/want to cancel e.t.c.
 	ctx := r.Context()
@@ -50,6 +59,17 @@ func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps htt
 	reply(w, book, http.StatusOK)
 }
 
+// @Tags Books
+// @Summary Запрос добавления книги
+// @Description Запрос для добавления информации о новой книге
+// @Accept json
+// @Produce json
+// @Param input body domain.Book true "book info"
+// @Success 201
+// @Failure 404
+// @Failure 500
+// @Failure 400
+// @Router /books [post]
 func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := r.Context()
 
@@ -69,15 +89,24 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}
-
-	if err := h.srv.AddBook(ctx, newBook); err != nil {
+	id, err := h.srv.AddBook(ctx, newBook)
+	if err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	reply(w, "Created", http.StatusCreated)
+	reply(w, "Created, id: "+id, http.StatusCreated)
 }
 
+// @Tags Books
+// @Summary Запрос удаления книги
+// @Description Запрос для удаления информации о существующей книге
+// @Produce json
+// @Param id path string true "book id" Example(8502ab55-6750-4c53-8126-acc1ba19f801)
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Router /books/{id} [delete]
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
@@ -88,9 +117,20 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	reply(w, "Created", http.StatusOK) // TODO: check if status OK is default value, change message to actual one
+	reply(w, "Deleted", http.StatusOK) // TODO: check if status OK is default value, change message to actual one
 }
 
+// @Tags Books
+// @Summary Запрос обновления информации о книге
+// @Description Запрос для обновления информации о существующей книге
+// @Accept json
+// @Param input body domain.Book true "book info"
+// @Param id path string true "book id" Example(8502ab55-6750-4c53-8126-acc1ba19f801)
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Failure 400
+// @Router /books/{id} [put]
 func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
@@ -115,5 +155,5 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	reply(w, "Created", http.StatusOK)
+	reply(w, "Updated", http.StatusOK)
 }

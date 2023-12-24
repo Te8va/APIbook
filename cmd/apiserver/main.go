@@ -9,7 +9,20 @@ import (
 	"github.com/Te8va/APIbook/internal/app/handler"
 	"github.com/Te8va/APIbook/internal/app/middleware"
 	"github.com/Te8va/APIbook/internal/app/repository"
+	"github.com/Te8va/APIbook/internal/app/service"
 )
+
+// @title Books API
+// @version 1.0
+// @description Сервис хранения информации о книгах
+
+// @host localhost:8080
+// @BasePath /
+
+// @Tag.name Books
+// @Tag.description Группа запросов для управления списком книг
+
+// @Schemes http
 
 func main() {
 
@@ -17,8 +30,9 @@ func main() {
 
 	bookRep := repository.NewFileBookRepository("M:\\GoLang\\APIbook\\cmd\\apiserver\\books") // TODO: use path like that "./books"
 
-	// TODO: add service layer between handler and repository
-	bookHandler := handler.NewBookHandler(bookRep)
+	bookSrv := service.NewBookService(bookRep)
+
+	bookHandler := handler.NewBookHandler(bookSrv)
 
 	router := httprouter.New()
 

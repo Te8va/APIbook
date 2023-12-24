@@ -51,7 +51,7 @@ func (r *Book) GetBookByID(ctx context.Context, id string) (domain.Book, error) 
 	return book, nil
 }
 
-func (f *Book) AddBook(ctx context.Context, updatedBook domain.Book) error {
+func (f *Book) AddBook(ctx context.Context, updatedBook domain.Book) (string, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -64,16 +64,16 @@ func (f *Book) AddBook(ctx context.Context, updatedBook domain.Book) error {
 
 	data, err := json.MarshalIndent(updatedBook, "", "    ")
 	if err != nil {
-		return fmt.Errorf(domain.ErrEncodingJSON.Error(), err)
+		return "", fmt.Errorf(domain.ErrEncodingJSON.Error(), err)
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
 		fmt.Println(err)
-		return fmt.Errorf(domain.ErrWritingToFile.Error(), err)
+		return "", fmt.Errorf(domain.ErrWritingToFile.Error(), err)
 	}
 
-	return nil
+	return updatedBook.ID, nil
 }
 
 func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Book) error {
