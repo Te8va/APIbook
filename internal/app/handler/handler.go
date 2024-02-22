@@ -3,10 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 
 	"github.com/Te8va/APIbook/internal/app/domain"
+	"github.com/Te8va/APIbook/internal/app/logging"
 )
 
 type Book struct {
@@ -18,27 +21,26 @@ func NewBookHandler(srv domain.BookRepository) *Book {
 }
 
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// TODO: use r.Context if you don't need to swap it with some other context/want to cancel e.t.c.
-	ctx := r.Context()
 
 	id := ps.ByName("id")
 
-	book, err := h.srv.GetBookByID(ctx, id)
+	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, id)
+	if err != nil {
+		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	if !matched {
+		logging.Logger.Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	book, err := h.srv.GetBookByID(id)
 	if err != nil {
 		handleBookError(w, err)
 		return
 	}
-
-	// TODO: remove this, the case should be handled by handleError
-	if book.ID == "" {
-		http.Error(w, "Book not found", http.StatusNotFound)
-		return
-	}
-
-	// TODO: remove redundant comments
-	// if err := reply(w, book); err != nil {
-	// 	http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-	// }
 
 	reply(w, book, http.StatusOK)
 }
@@ -47,18 +49,19 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 	ctx := r.Context()
 
 	defer r.Body.Close()
-	// TODO: use disallow unknown fields
 
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
 
 	var newBook domain.Book
 	if err := d.Decode(&newBook); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest) // TODO: change error description
+		logging.Logger.Error("Error decoding request payload", zap.Error(err))
+		http.Error(w, "Invalid to decode request payload", http.StatusBadRequest)
 		return
 	}
 
 	if newBook.Title == "" || newBook.Author == "" || newBook.Year == 0 {
+		logging.Logger.Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}
@@ -76,37 +79,66 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 
 	id := ps.ByName("id")
 
+	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, id)
+	if err != nil {
+		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	if !matched {
+		logging.Logger.Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
 	if err := h.srv.DeleteBook(ctx, id); err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	reply(w, "Created", http.StatusOK) // TODO: check if status OK is default value, change message to actual one
+	reply(w, "Book deleted successfully", http.StatusOK)
 }
 
 func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
-	id := ps.ByName("id") // TODO: you can get the id from book in body
-
 	defer r.Body.Close()
 
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+
 	var updatedBook domain.Book
-	err := json.NewDecoder(r.Body).Decode(&updatedBook)
+	err := d.Decode(&updatedBook)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		logging.Logger.Error("Error decoding request payload", zap.Error(err))
+		http.Error(w, "Invalid to decode request payload", http.StatusBadRequest)
+		return
+	}
+
+	updatedBook.ID = ps.ByName("id")
+
+	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, updatedBook.ID)
+	if err != nil {
+		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	if !matched {
+		logging.Logger.Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
 	if updatedBook.Title == "" || updatedBook.Author == "" || updatedBook.Year == 0 {
+		logging.Logger.Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}
 
-	if err = h.srv.UpdateBook(ctx, id, updatedBook); err != nil { // TODO: use updatedBook.ID
+	if err = h.srv.UpdateBook(ctx, updatedBook.ID, updatedBook); err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	reply(w, "Created", http.StatusOK)
+	reply(w, "Updated", http.StatusOK)
 }

@@ -14,8 +14,8 @@ func NewBookService(repo domain.BookRepository) *Book {
 	return &Book{repo: repo}
 }
 
-func (s *Book) GetBookByID(ctx context.Context, id string) (domain.Book, error) {
-	return s.repo.GetBookByID(ctx, id)
+func (s *Book) GetBookByID(id string) (domain.Book, error) {
+	return s.repo.GetBookByID(id)
 }
 
 func (s *Book) AddBook(ctx context.Context, newBook domain.Book) error {
