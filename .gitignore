@@ -14,8 +14,5 @@
 # GoLand directory
 .idea
 
-# Client directory
-cmd/apiclient
-
 # Books storage
 cmd/apiserver/books
