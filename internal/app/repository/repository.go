@@ -22,11 +22,11 @@ func NewFileBookRepository(filePath string) *Book {
 	return &Book{FilePath: filePath, mu: &sync.RWMutex{}}
 }
 
-func (r *Book) GetBookByID(id string) (domain.Book, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+func (f *Book) GetBookByID(id string) (domain.Book, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 
-	filePath := fmt.Sprintf("%s/book_%s.json", r.FilePath, id)
+	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -79,22 +79,12 @@ func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Boo
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	// filePath := fmt.Sprintf("%s/book_%s.json", r.FilePath, id)
-	// file, err := os.Open(filePath)
-	// if err != nil {
-	// 	if os.IsNotExist(err) {
-	// 		return fmt.Errorf(domain.ErrBookNotFound.Error())
-	// 	}
-	// 	return fmt.Errorf(domain.ErrReadingFile.Error())
-	// }
-
 	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) { // TODO: check if it can be done with checking error of os.ReadFile
-		return fmt.Errorf(domain.ErrBookNotFound.Error())
-	}
-
 	file, err := os.ReadFile(filePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf(domain.ErrBookNotFound.Error())
+		}
 		return fmt.Errorf(domain.ErrReadingFile.Error())
 	}
 
@@ -127,12 +117,11 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 	defer f.mu.Unlock()
 
 	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return domain.ErrBookNotFound
-	}
-
 	file, err := os.ReadFile(filePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf(domain.ErrBookNotFound.Error())
+		}
 		return fmt.Errorf(domain.ErrReadingFile.Error())
 	}
 

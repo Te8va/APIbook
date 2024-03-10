@@ -6,10 +6,9 @@ import (
 	"regexp"
 
 	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
 
 	"github.com/Te8va/APIbook/internal/app/domain"
-	"github.com/Te8va/APIbook/internal/app/logging"
+	logging "github.com/Te8va/APIbook/internal/pkg/logger"
 )
 
 type Book struct {
@@ -24,14 +23,16 @@ func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps htt
 
 	id := ps.ByName("id")
 
-	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, id)
+	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
+
+	matched, err := regexp.MatchString(uidPattern, id)
 	if err != nil {
-		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		logging.Logger().Error("Error validating book ID", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	if !matched {
-		logging.Logger.Warn("Invalid book ID format")
+		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
@@ -55,13 +56,13 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 
 	var newBook domain.Book
 	if err := d.Decode(&newBook); err != nil {
-		logging.Logger.Error("Error decoding request payload", zap.Error(err))
+		logging.Logger().Error("Error decoding request payload", err)
 		http.Error(w, "Invalid to decode request payload", http.StatusBadRequest)
 		return
 	}
 
 	if newBook.Title == "" || newBook.Author == "" || newBook.Year == 0 {
-		logging.Logger.Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
+		logging.Logger().Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}
@@ -79,14 +80,16 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 
 	id := ps.ByName("id")
 
-	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, id)
+	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
+
+	matched, err := regexp.MatchString(uidPattern, id)
 	if err != nil {
-		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		logging.Logger().Error("Error validating book ID", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	if !matched {
-		logging.Logger.Warn("Invalid book ID format")
+		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
@@ -110,27 +113,29 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 	var updatedBook domain.Book
 	err := d.Decode(&updatedBook)
 	if err != nil {
-		logging.Logger.Error("Error decoding request payload", zap.Error(err))
+		logging.Logger().Error("Error decoding request payload", err)
 		http.Error(w, "Invalid to decode request payload", http.StatusBadRequest)
 		return
 	}
 
 	updatedBook.ID = ps.ByName("id")
 
-	matched, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, updatedBook.ID)
+	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
+
+	matched, err := regexp.MatchString(uidPattern, updatedBook.ID)
 	if err != nil {
-		logging.Logger.Error("Error validating book ID", zap.Error(err))
+		logging.Logger().Error("Error validating book ID", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	if !matched {
-		logging.Logger.Warn("Invalid book ID format")
+		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
 	if updatedBook.Title == "" || updatedBook.Author == "" || updatedBook.Year == 0 {
-		logging.Logger.Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
+		logging.Logger().Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
 		http.Error(w, "Title, Author, and Data are required fields", http.StatusBadRequest)
 		return
 	}

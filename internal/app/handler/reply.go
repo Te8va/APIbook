@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"go.uber.org/zap"
-
-	"github.com/Te8va/APIbook/internal/app/logging"
+	logging "github.com/Te8va/APIbook/internal/pkg/logger"
 )
 
 func reply(w http.ResponseWriter, message interface{}, statusCode int) {
 
 	response, err := json.Marshal(message)
 	if err != nil {
-		logging.Logger.Error("Error encoding JSON", zap.Error(err))
+		logging.Logger().Error("Error encoding JSON", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -23,7 +21,7 @@ func reply(w http.ResponseWriter, message interface{}, statusCode int) {
 
 	_, err = w.Write(response)
 	if err != nil {
-		logging.Logger.Error("Error writing response", zap.Error(err))
+		logging.Logger().Error("Error writing response", err)
 		return
 	}
 

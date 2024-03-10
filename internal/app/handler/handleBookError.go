@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.uber.org/zap"
-
 	"github.com/Te8va/APIbook/internal/app/domain"
-	"github.com/Te8va/APIbook/internal/app/logging"
+	logging "github.com/Te8va/APIbook/internal/pkg/logger"
 )
 
 func handleBookError(w http.ResponseWriter, err error) {
@@ -38,6 +36,6 @@ func handleBookError(w http.ResponseWriter, err error) {
 		errorMessage = fmt.Sprintf("Internal server error: %v", err)
 	}
 
-	logging.Logger.Error(errorMessage, zap.Error(err))
+	logging.Logger().Error(errorMessage, err)
 	http.Error(w, errorMessage, statusCode)
 }
