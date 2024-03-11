@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"sync"
 	"fmt"
+	"sync"
 
 	"go.uber.org/zap"
 )
@@ -27,7 +27,7 @@ func Logger() *logger {
 	})
 
 	if err != nil {
-		panicStr := fmt.Errorf("cannot proceed: couldn't initialize logger because of an error - %w", err)
+		panicStr := fmt.Errorf("Couldn't initialize logger because of an error:", err)
 		panic(panicStr)
 	}
 
