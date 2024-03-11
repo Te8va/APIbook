@@ -27,7 +27,7 @@ func Logger() *logger {
 	})
 
 	if err != nil {
-		panicStr := fmt.Errorf("Couldn't initialize logger because of an error:", err)
+		panicStr := fmt.Errorf("сouldn't initialize logger because of an error:%v", err)
 		panic(panicStr)
 	}
 
