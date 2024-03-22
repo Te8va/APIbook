@@ -128,7 +128,7 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 		if os.IsNotExist(err) {
 			return domain.ErrBookNotFound
 		}
-		
+
 		return domain.ErrReadingFile
 	}
 
