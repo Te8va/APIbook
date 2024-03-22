@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/Te8va/APIbook/internal/app/domain"
+	"github.com/Te8va/APIbook/internal/app/server/domain"
 )
 
 type Book struct {

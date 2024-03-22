@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"regexp"
 
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/Te8va/APIbook/internal/app/domain"
+	"github.com/Te8va/APIbook/internal/app/server/domain"
 	logging "github.com/Te8va/APIbook/internal/pkg/logger"
 )
 
@@ -20,18 +20,9 @@ func NewBookHandler(srv domain.BookRepository) *Book {
 }
 
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
 	id := ps.ByName("id")
 
-	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
-
-	matched, err := regexp.MatchString(uidPattern, id)
-	if err != nil {
-		logging.Logger().Error("Error validating book ID", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	if !matched {
+	if uuid.Validate(id) != nil {
 		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
@@ -47,8 +38,6 @@ func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps htt
 }
 
 func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := r.Context()
-
 	defer r.Body.Close()
 
 	d := json.NewDecoder(r.Body)
@@ -67,7 +56,7 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	if err := h.srv.AddBook(ctx, newBook); err != nil {
+	if err := h.srv.AddBook(r.Context(), newBook); err != nil {
 		handleBookError(w, err)
 		return
 	}
@@ -76,25 +65,15 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 }
 
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
 	id := ps.ByName("id")
 
-	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
-
-	matched, err := regexp.MatchString(uidPattern, id)
-	if err != nil {
-		logging.Logger().Error("Error validating book ID", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	if !matched {
+	if uuid.Validate(id) != nil {
 		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.srv.DeleteBook(ctx, id); err != nil {
+	if err := h.srv.DeleteBook(r.Context(), id); err != nil {
 		handleBookError(w, err)
 		return
 	}
@@ -103,8 +82,6 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 }
 
 func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
 	defer r.Body.Close()
 
 	d := json.NewDecoder(r.Body)
@@ -120,15 +97,7 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 
 	updatedBook.ID = ps.ByName("id")
 
-	uidPattern := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`
-
-	matched, err := regexp.MatchString(uidPattern, updatedBook.ID)
-	if err != nil {
-		logging.Logger().Error("Error validating book ID", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	if !matched {
+	if uuid.Validate(updatedBook.ID) != nil {
 		logging.Logger().Warn("Invalid book ID format")
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
@@ -140,7 +109,7 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	if err = h.srv.UpdateBook(ctx, updatedBook.ID, updatedBook); err != nil {
+	if err = h.srv.UpdateBook(r.Context(), updatedBook.ID, updatedBook); err != nil {
 		handleBookError(w, err)
 		return
 	}

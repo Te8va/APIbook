@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/Te8va/APIbook/internal/app/domain"
+	"github.com/Te8va/APIbook/internal/app/server/domain"
 )
 
 type Book struct {
@@ -23,16 +23,18 @@ func NewFileBookRepository(filePath string) *Book {
 }
 
 func (f *Book) GetBookByID(id string) (domain.Book, error) {
+	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
+
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 
-	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return domain.Book{}, domain.ErrBookNotFound
 		}
-		return domain.Book{}, fmt.Errorf(domain.ErrReadingFile.Error())
+
+		return domain.Book{}, domain.ErrReadingFile
 	}
 	defer file.Close()
 
@@ -41,7 +43,7 @@ func (f *Book) GetBookByID(id string) (domain.Book, error) {
 	var book domain.Book
 	err = decoder.Decode(&book)
 	if err != nil {
-		return domain.Book{}, fmt.Errorf(domain.ErrDecodingJSON.Error())
+		return domain.Book{}, domain.ErrDecodingJSON
 	}
 
 	if book.Status == "deleted" {
@@ -51,46 +53,49 @@ func (f *Book) GetBookByID(id string) (domain.Book, error) {
 	return book, nil
 }
 
-func (f *Book) AddBook(ctx context.Context, updatedBook domain.Book) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
+func (f *Book) AddBook(ctx context.Context, newBook domain.Book) error {
 	newUUID := uuid.New()
 
 	fileName := fmt.Sprintf("book_%s.json", newUUID)
+
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
 	filePath := filepath.Join(f.FilePath, fileName)
 
-	updatedBook.ID = newUUID.String()
+	newBook.ID = newUUID.String()
 
-	data, err := json.MarshalIndent(updatedBook, "", "    ")
+	data, err := json.MarshalIndent(newBook, "", "    ")
 	if err != nil {
-		return fmt.Errorf(domain.ErrEncodingJSON.Error())
+		return domain.ErrEncodingJSON
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
-		return fmt.Errorf(domain.ErrWritingToFile.Error())
+		return domain.ErrWritingToFile
 	}
 
 	return nil
 }
 
 func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Book) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
 	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
+
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf(domain.ErrBookNotFound.Error())
+			return domain.ErrBookNotFound
 		}
-		return fmt.Errorf(domain.ErrReadingFile.Error())
+
+		return domain.ErrReadingFile
 	}
 
 	var books domain.Book
 	if err := json.Unmarshal(file, &books); err != nil {
-		return fmt.Errorf(domain.ErrDecodingJSON.Error())
+		return domain.ErrDecodingJSON
 	}
 
 	if books.Status == "deleted" {
@@ -101,33 +106,35 @@ func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Boo
 
 	data, err := json.MarshalIndent(updatedBook, "", "    ")
 	if err != nil {
-		return fmt.Errorf(domain.ErrEncodingJSON.Error())
+		return domain.ErrEncodingJSON
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
-		return fmt.Errorf(domain.ErrWritingToFile.Error())
+		return domain.ErrWritingToFile
 	}
 
 	return nil
 }
 
 func (f *Book) DeleteBook(ctx context.Context, id string) error {
+	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
+
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	filePath := fmt.Sprintf("%s/book_%s.json", f.FilePath, id)
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf(domain.ErrBookNotFound.Error())
+			return domain.ErrBookNotFound
 		}
-		return fmt.Errorf(domain.ErrReadingFile.Error())
+		
+		return domain.ErrReadingFile
 	}
 
 	var book domain.Book
 	if err := json.Unmarshal(file, &book); err != nil {
-		return fmt.Errorf(domain.ErrDecodingJSON.Error())
+		return domain.ErrDecodingJSON
 	}
 
 	if book.Status == "deleted" {
@@ -138,12 +145,12 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 
 	data, err := json.MarshalIndent(book, "", "    ")
 	if err != nil {
-		return fmt.Errorf(domain.ErrEncodingJSON.Error())
+		return domain.ErrEncodingJSON
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
-		return fmt.Errorf(domain.ErrWritingToFile.Error())
+		return domain.ErrWritingToFile
 	}
 
 	return nil

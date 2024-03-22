@@ -8,7 +8,6 @@ import (
 )
 
 func reply(w http.ResponseWriter, message interface{}, statusCode int) {
-
 	response, err := json.Marshal(message)
 	if err != nil {
 		logging.Logger().Error("Error encoding JSON", err)

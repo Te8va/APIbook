@@ -3,14 +3,14 @@ package main
 import (
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
-
-	"github.com/Te8va/APIbook/internal/app/handler"
-	"github.com/Te8va/APIbook/internal/app/repository"
-	"github.com/Te8va/APIbook/internal/app/routers"
-	"github.com/Te8va/APIbook/internal/app/services"
+	"github.com/Te8va/APIbook/internal/app/server/handler"
+	"github.com/Te8va/APIbook/internal/app/server/repository"
+	"github.com/Te8va/APIbook/internal/app/server/routers"
+	"github.com/Te8va/APIbook/internal/app/server/services"
 	logging "github.com/Te8va/APIbook/internal/pkg/logger"
 )
+
+const port = ":8080"
 
 func main() {
 
@@ -20,13 +20,12 @@ func main() {
 
 	bookHandler := handler.NewBookHandler(bookSrv)
 
-	router := httprouter.New()
+	router := routers.NewRouter()
+	router.RegisterHandlers(bookHandler)
 
-	routers.RegisterHandlers(router, bookHandler)
+	logging.Logger().Info("Server is running on port", port)
 
-	logging.Logger().Info("Server is running on port 8080")
-
-	err := http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(port, router)
 	if err != nil {
 		logging.Logger().Error("Error while starting the server:", err)
 	}

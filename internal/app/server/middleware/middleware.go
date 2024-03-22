@@ -11,6 +11,11 @@ import (
 
 func Log(next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		if logging.Logger() == nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 		logging.Logger().Info("Request", zap.String("URL", r.URL.Path), zap.String("Method", r.Method))
 
 		defer func() {
