@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/Te8va/APIbook/internal/app/server/handler"
@@ -14,7 +15,22 @@ const port = ":8080"
 
 func main() {
 
-	bookRep := repository.NewFileBookRepository("books")
+	err := repository.ApplyMigrations("file://migrations", "postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
+	if err != nil {
+		log.Println(err)
+	}
+
+	p, err := repository.NewPgxpool("postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	defer p.Close()
+
+	bookRep := repository.NewPostgresBookRepository(p)
+
+	// bookRep := repository.NewFileBookRepository("books")
 
 	bookSrv := services.NewBookService(bookRep)
 
@@ -25,7 +41,7 @@ func main() {
 
 	logging.Logger().Info("Server is running on port", port)
 
-	err := http.ListenAndServe(port, router)
+	err = http.ListenAndServe(port, router)
 	if err != nil {
 		logging.Logger().Error("Error while starting the server:", err)
 	}

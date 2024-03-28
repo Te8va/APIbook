@@ -16,3 +16,9 @@
 
 # Books storage
 cmd/apiserver/books
+
+# Env file
+.env
+
+# Postgres files
+go-book-postgres/
