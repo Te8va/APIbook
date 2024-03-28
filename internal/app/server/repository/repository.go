@@ -19,6 +19,11 @@ type Book struct {
 }
 
 func NewFileBookRepository(filePath string) *Book {
+	err := os.MkdirAll(filePath, 0755)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Book{FilePath: filePath, mu: &sync.RWMutex{}}
 }
 
