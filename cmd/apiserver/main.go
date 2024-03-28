@@ -3,7 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
+
+	bookDomain "github.com/Te8va/APIbook/internal/app/server/domain"
 	"github.com/Te8va/APIbook/internal/app/server/handler"
 	"github.com/Te8va/APIbook/internal/app/server/repository"
 	"github.com/Te8va/APIbook/internal/app/server/routers"
@@ -14,23 +18,32 @@ import (
 const port = ":8080"
 
 func main() {
-
-	err := repository.ApplyMigrations("file://migrations", "postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
+	err := godotenv.Load()
 	if err != nil {
-		log.Println(err)
+		log.Fatal("Error loading .env file")
 	}
 
-	p, err := repository.NewPgxpool("postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
-	if err != nil {
-		log.Println(err)
-		return
+	useFile, _ := os.LookupEnv("USE_FILE")
+	var bookRep bookDomain.BookRepository
+	if useFile != "true" {
+		err = repository.ApplyMigrations("file://migrations", "postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
+		if err != nil {
+			log.Println(err)
+		}
+
+		p, err := repository.NewPgxpool("postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		defer p.Close()
+
+		bookRep = repository.NewPostgresBookRepository(p)
+
+	} else {
+		bookRep = repository.NewFileBookRepository("books")
 	}
-
-	defer p.Close()
-
-	bookRep := repository.NewPostgresBookRepository(p)
-
-	// bookRep := repository.NewFileBookRepository("books")
 
 	bookSrv := services.NewBookService(bookRep)
 

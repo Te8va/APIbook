@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	// "github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/Te8va/APIbook/internal/app/server/domain"
@@ -22,11 +22,11 @@ func NewBookHandler(srv domain.BookRepository) *Book {
 func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 
-	// if uuid.Validate(id) != nil {
-	// 	logging.Logger().Warn("Invalid book ID format")
-	// 	http.Error(w, "Invalid ID format", http.StatusBadRequest)
-	// 	return
-	// }
+	if uuid.Validate(id) != nil {
+		logging.Logger().Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
 
 	book, err := h.srv.GetBookByID(id)
 	if err != nil {
@@ -67,11 +67,11 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 
-	// if uuid.Validate(id) != nil {
-	// 	logging.Logger().Warn("Invalid book ID format")
-	// 	http.Error(w, "Invalid ID format", http.StatusBadRequest)
-	// 	return
-	// }
+	if uuid.Validate(id) != nil {
+		logging.Logger().Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
 
 	if err := h.srv.DeleteBook(r.Context(), id); err != nil {
 		handleBookError(w, err)
@@ -97,11 +97,11 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 
 	updatedBook.ID = ps.ByName("id")
 
-	// if uuid.Validate(updatedBook.ID) != nil {
-	// 	logging.Logger().Warn("Invalid book ID format")
-	// 	http.Error(w, "Invalid ID format", http.StatusBadRequest)
-	// 	return
-	// }
+	if uuid.Validate(updatedBook.ID) != nil {
+		logging.Logger().Warn("Invalid book ID format")
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
 
 	if updatedBook.Title == "" || updatedBook.Author == "" || updatedBook.Year == 0 {
 		logging.Logger().Warn("Required fields are not filled in for adding a new book: Title, Author, Year")
