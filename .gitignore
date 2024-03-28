@@ -1,0 +1,18 @@
+# Logs
+*.log
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# VS Code directory
+.vscode
+
+# GoLand directory
+.idea
+
+# Books storage
+cmd/apiserver/books
