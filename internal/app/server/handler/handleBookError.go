@@ -12,7 +12,7 @@ import (
 func handleBookError(w http.ResponseWriter, err error) {
 	var statusCode int
 
-	if errors.Is(err, domain.ErrReadingFile) || errors.Is(err, domain.ErrDecodingJSON) || errors.Is(err, domain.ErrEncodingJSON) || errors.Is(err, domain.ErrWritingToFile) {
+	if errors.Is(err, domain.ErrReadingFile) || errors.Is(err, domain.ErrDecodingJSON) || errors.Is(err, domain.ErrEncodingJSON) || errors.Is(err, domain.ErrWritingToFile) || errors.Is(err, domain.ErrEncodingJSON) || errors.Is(err, domain.ErrReadingDatabase) || errors.Is(err, domain.ErrEncodingJSON) || errors.Is(err, domain.ErrDatabaseOperation) {
 		statusCode = http.StatusInternalServerError
 	} else if errors.Is(err, domain.ErrDeletedBook) || errors.Is(err, domain.ErrBookNotFound) {
 		statusCode = http.StatusNotFound
@@ -21,6 +21,6 @@ func handleBookError(w http.ResponseWriter, err error) {
 		err = fmt.Errorf("internal server error: %w", err)
 	}
 
-	logging.Logger().Error(err.Error(), err)
+	logging.Logger().Error(err.Error())
 	http.Error(w, err.Error(), statusCode)
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -20,7 +19,7 @@ const port = ":8080"
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logging.Logger().Fatal("Error loading .env file")
 	}
 
 	useFile, _ := os.LookupEnv("USE_FILE")
@@ -28,12 +27,12 @@ func main() {
 	if useFile != "true" {
 		err = repository.ApplyMigrations("file://migrations", "postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
 		if err != nil {
-			log.Println(err)
+			logging.Logger().Error("Error to apply migrations:", err)
 		}
 
 		p, err := repository.NewPgxpool("postgres://go-book:go-book@localhost:5432/go-book?sslmode=disable")
 		if err != nil {
-			log.Println(err)
+			logging.Logger().Error("Error to create PostgreSQL connection pool:", err)
 			return
 		}
 

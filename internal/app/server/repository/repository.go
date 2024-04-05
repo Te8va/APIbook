@@ -58,7 +58,7 @@ func (f *Book) GetBookByID(id string) (domain.Book, error) {
 	return book, nil
 }
 
-func (f *Book) AddBook(ctx context.Context, newBook domain.Book) error {
+func (f *Book) AddBook(ctx context.Context, newBook domain.Book) (string, error) {
 	newUUID := uuid.New()
 
 	fileName := fmt.Sprintf("book_%s.json", newUUID)
@@ -72,15 +72,15 @@ func (f *Book) AddBook(ctx context.Context, newBook domain.Book) error {
 
 	data, err := json.MarshalIndent(newBook, "", "    ")
 	if err != nil {
-		return domain.ErrEncodingJSON
+		return "", domain.ErrEncodingJSON
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
-		return domain.ErrWritingToFile
+		return "", domain.ErrWritingToFile
 	}
 
-	return nil
+	return newUUID.String(), nil
 }
 
 func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Book) error {

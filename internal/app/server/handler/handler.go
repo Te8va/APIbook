@@ -56,12 +56,13 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	if err := h.srv.AddBook(r.Context(), newBook); err != nil {
+	bookID, err := h.srv.AddBook(r.Context(), newBook)
+	if err != nil {
 		handleBookError(w, err)
 		return
 	}
 
-	reply(w, "Created", http.StatusCreated)
+	reply(w, bookID, http.StatusCreated)
 }
 
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
