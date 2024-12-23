@@ -1,0 +1,9 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS books (
+    id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE
+);
+COMMIT;

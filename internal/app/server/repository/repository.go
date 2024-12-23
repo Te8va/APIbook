@@ -13,13 +13,20 @@ import (
 	"github.com/Te8va/APIbook/internal/app/server/domain"
 )
 
+var _ domain.BookRepository = (*Book)(nil)
+
 type Book struct {
 	FilePath string
 	mu       *sync.RWMutex
 }
 
-func NewFileBookRepository(filePath string) *Book {
-	return &Book{FilePath: filePath, mu: &sync.RWMutex{}}
+func NewFileBookRepository(filePath string) (*Book, error) {
+	err := os.MkdirAll(filePath, 0755)
+	if err != nil {
+		return nil, domain.ErrCreatingDirectory
+	}
+
+	return &Book{FilePath: filePath}, nil
 }
 
 func (f *Book) GetBookByID(id string) (domain.Book, error) {
@@ -46,14 +53,14 @@ func (f *Book) GetBookByID(id string) (domain.Book, error) {
 		return domain.Book{}, domain.ErrDecodingJSON
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.Book{}, domain.ErrDeletedBook
 	}
 
 	return book, nil
 }
 
-func (f *Book) AddBook(ctx context.Context, newBook domain.Book) error {
+func (f *Book) AddBook(ctx context.Context, newBook domain.Book) (string, error) {
 	newUUID := uuid.New()
 
 	fileName := fmt.Sprintf("book_%s.json", newUUID)
@@ -67,15 +74,15 @@ func (f *Book) AddBook(ctx context.Context, newBook domain.Book) error {
 
 	data, err := json.MarshalIndent(newBook, "", "    ")
 	if err != nil {
-		return domain.ErrEncodingJSON
+		return "", domain.ErrEncodingJSON
 	}
 
 	err = os.WriteFile(filePath, data, 0660)
 	if err != nil {
-		return domain.ErrWritingToFile
+		return "", domain.ErrWritingToFile
 	}
 
-	return nil
+	return newUUID.String(), nil
 }
 
 func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Book) error {
@@ -93,16 +100,16 @@ func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Boo
 		return domain.ErrReadingFile
 	}
 
-	var books domain.Book
-	if err := json.Unmarshal(file, &books); err != nil {
+	var book domain.Book
+	if err := json.Unmarshal(file, &book); err != nil {
 		return domain.ErrDecodingJSON
 	}
 
-	if books.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.ErrDeletedBook
 	}
 
-	updatedBook.ID = books.ID
+	updatedBook.ID = book.ID
 
 	data, err := json.MarshalIndent(updatedBook, "", "    ")
 	if err != nil {
@@ -137,11 +144,11 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 		return domain.ErrDecodingJSON
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.ErrDeletedBook
 	}
 
-	book.Status = "deleted"
+	book.IsDeleted = true
 
 	data, err := json.MarshalIndent(book, "", "    ")
 	if err != nil {

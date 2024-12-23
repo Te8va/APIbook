@@ -29,12 +29,7 @@ func (h *Book) GetBookByIDHandler(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	book, err := h.srv.GetBookByID(id)
-	if err != nil {
-		handleBookError(w, err)
-		return
-	}
-
-	reply(w, book, http.StatusOK)
+	reply(w, book, http.StatusOK, err)
 }
 
 func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -56,12 +51,8 @@ func (h *Book) AddBookHandler(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	if err := h.srv.AddBook(r.Context(), newBook); err != nil {
-		handleBookError(w, err)
-		return
-	}
-
-	reply(w, "Created", http.StatusCreated)
+	bookID, err := h.srv.AddBook(r.Context(), newBook)
+	reply(w, bookID, http.StatusCreated, err)
 }
 
 func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -73,12 +64,8 @@ func (h *Book) DeleteBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	if err := h.srv.DeleteBook(r.Context(), id); err != nil {
-		handleBookError(w, err)
-		return
-	}
-
-	reply(w, "Book deleted successfully", http.StatusOK)
+	err := h.srv.DeleteBook(r.Context(), id)
+	reply(w, "Book deleted successfully", http.StatusOK, err)
 }
 
 func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -109,10 +96,6 @@ func (h *Book) UpdateBookHandler(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	if err = h.srv.UpdateBook(r.Context(), updatedBook.ID, updatedBook); err != nil {
-		handleBookError(w, err)
-		return
-	}
-
-	reply(w, "Updated", http.StatusOK)
+	err = h.srv.UpdateBook(r.Context(), updatedBook.ID, updatedBook)
+	reply(w, "Updated", http.StatusOK, err)
 }

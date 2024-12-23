@@ -15,4 +15,10 @@
 .idea
 
 # Books storage
-cmd/apiserver/books
+books
+
+# Env file
+.env
+
+# Postgres files
+go-book-postgres/
