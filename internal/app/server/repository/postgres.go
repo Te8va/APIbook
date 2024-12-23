@@ -11,6 +11,8 @@ import (
 	"github.com/Te8va/APIbook/internal/app/server/domain"
 )
 
+var _ domain.BookRepository = (*postgres)(nil)
+
 type postgres struct {
 	*pgxpool.Pool
 }
@@ -22,7 +24,7 @@ func NewPostgresBookRepository(pg *pgxpool.Pool) *postgres {
 func (p *postgres) GetBookByID(id string) (domain.Book, error) {
 	var book domain.Book
 
-	err := p.QueryRow(context.Background(), "SELECT id, title, author, year, status FROM books WHERE id = $1", id).Scan(&book.ID, &book.Title, &book.Author, &book.Year, &book.Status)
+	err := p.QueryRow(context.Background(), "SELECT id, title, author, year, is_deleted FROM books WHERE id = $1", id).Scan(&book.ID, &book.Title, &book.Author, &book.Year, &book.IsDeleted)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.Book{}, domain.ErrBookNotFound
@@ -30,7 +32,7 @@ func (p *postgres) GetBookByID(id string) (domain.Book, error) {
 		return domain.Book{}, domain.ErrReadingDatabase
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.Book{}, domain.ErrDeletedBook
 	}
 
@@ -43,14 +45,14 @@ func (p *postgres) AddBook(ctx context.Context, newBook domain.Book) (string, er
 		newUUID := uuid.New()
 		newBook.ID = newUUID.String()
 
-		_, err := tx.Exec(ctx, "INSERT INTO books (id, title, author, year, status) VALUES ($1, $2, $3, $4, $5)", newBook.ID, newBook.Title, newBook.Author, newBook.Year, "")
+		_, err := tx.Exec(ctx, "INSERT INTO books (id, title, author, year, is_deleted) VALUES ($1, $2, $3, $4, $5)", newBook.ID, newBook.Title, newBook.Author, newBook.Year, false)
 		if err != nil {
 			return domain.ErrDatabaseOperation
 		}
 		return nil
 	})
 	if err != nil {
-		return "", err
+		return "", domain.ErrReadingDatabase
 	}
 
 	return newBook.ID, nil
@@ -59,7 +61,7 @@ func (p *postgres) AddBook(ctx context.Context, newBook domain.Book) (string, er
 func (p *postgres) UpdateBook(ctx context.Context, id string, updatedBook domain.Book) error {
 	var book domain.Book
 
-	err := p.QueryRow(ctx, "SELECT status FROM books WHERE id = $1", id).Scan(&book.Status)
+	err := p.QueryRow(ctx, "SELECT is_deleted FROM books WHERE id = $1", id).Scan(&book.IsDeleted)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.ErrBookNotFound
@@ -67,13 +69,13 @@ func (p *postgres) UpdateBook(ctx context.Context, id string, updatedBook domain
 		return domain.ErrReadingDatabase
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.ErrDeletedBook
 	}
 
 	return p.UseTransaction(ctx, func(tx pgx.Tx) error {
-
-		tag, err := tx.Exec(ctx, "UPDATE books SET title = $1, author = $2, year= $3 WHERE id = $4", updatedBook.Title, updatedBook.Author, updatedBook.Year, id)
+		tag, err := tx.Exec(ctx, "UPDATE books SET title = $1, author = $2, year = $3 WHERE id = $4",
+			updatedBook.Title, updatedBook.Author, updatedBook.Year, id)
 		if err != nil {
 			return domain.ErrDatabaseOperation
 		}
@@ -86,25 +88,15 @@ func (p *postgres) UpdateBook(ctx context.Context, id string, updatedBook domain
 }
 
 func (p *postgres) DeleteBook(ctx context.Context, id string) error {
-	var book domain.Book
-
-	err := p.QueryRow(ctx, "SELECT status FROM books WHERE id = $1", id).Scan(&book.Status)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return domain.ErrBookNotFound
-		}
-		return domain.ErrReadingDatabase
-	}
-
-	if book.Status == "deleted" {
-		return domain.ErrDeletedBook
-	}
-
 	return p.UseTransaction(ctx, func(tx pgx.Tx) error {
 
-		_, err := tx.Exec(ctx, "UPDATE books SET status = 'deleted' WHERE id = $1", id)
+		result, err := tx.Exec(ctx, "UPDATE books SET is_deleted  = $1 WHERE id = $2 AND is_deleted = false", true, id)
 		if err != nil {
 			return domain.ErrDatabaseOperation
+		}
+
+		if result.RowsAffected() == 0 {
+			return domain.ErrBookNotFound
 		}
 
 		return nil

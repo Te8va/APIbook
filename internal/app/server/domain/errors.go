@@ -15,4 +15,5 @@ var (
 	ErrBookNotFound      = errors.New("book not found")
 	ErrReadingDatabase   = errors.New("error reading database")
 	ErrDatabaseOperation = errors.New("error database operation")
+	ErrCreatingDirectory = errors.New("error creating directory")
 )

@@ -13,18 +13,20 @@ import (
 	"github.com/Te8va/APIbook/internal/app/server/domain"
 )
 
+var _ domain.BookRepository = (*Book)(nil)
+
 type Book struct {
 	FilePath string
 	mu       *sync.RWMutex
 }
 
-func NewFileBookRepository(filePath string) *Book {
+func NewFileBookRepository(filePath string) (*Book, error) {
 	err := os.MkdirAll(filePath, 0755)
 	if err != nil {
-		panic(err)
+		return nil, domain.ErrCreatingDirectory
 	}
 
-	return &Book{FilePath: filePath, mu: &sync.RWMutex{}}
+	return &Book{FilePath: filePath}, nil
 }
 
 func (f *Book) GetBookByID(id string) (domain.Book, error) {
@@ -51,7 +53,7 @@ func (f *Book) GetBookByID(id string) (domain.Book, error) {
 		return domain.Book{}, domain.ErrDecodingJSON
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.Book{}, domain.ErrDeletedBook
 	}
 
@@ -98,16 +100,16 @@ func (f *Book) UpdateBook(ctx context.Context, id string, updatedBook domain.Boo
 		return domain.ErrReadingFile
 	}
 
-	var books domain.Book
-	if err := json.Unmarshal(file, &books); err != nil {
+	var book domain.Book
+	if err := json.Unmarshal(file, &book); err != nil {
 		return domain.ErrDecodingJSON
 	}
 
-	if books.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.ErrDeletedBook
 	}
 
-	updatedBook.ID = books.ID
+	updatedBook.ID = book.ID
 
 	data, err := json.MarshalIndent(updatedBook, "", "    ")
 	if err != nil {
@@ -142,11 +144,11 @@ func (f *Book) DeleteBook(ctx context.Context, id string) error {
 		return domain.ErrDecodingJSON
 	}
 
-	if book.Status == "deleted" {
+	if book.IsDeleted {
 		return domain.ErrDeletedBook
 	}
 
-	book.Status = "deleted"
+	book.IsDeleted = true
 
 	data, err := json.MarshalIndent(book, "", "    ")
 	if err != nil {

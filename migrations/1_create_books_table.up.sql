@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS books (
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     year INTEGER NOT NULL,
-    status TEXT
+    is_deleted BOOLEAN DEFAULT FALSE
 );
 COMMIT;

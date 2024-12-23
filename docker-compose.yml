@@ -17,3 +17,27 @@ services:
       timeout: 7s
       retries: 5
     command: [ "postgres", "-c", "log_statement=all" ]
+    
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: book
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+     - ./books:/apiserver/books
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+
+networks:
+  app-network:

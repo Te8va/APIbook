@@ -7,11 +7,17 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-func ApplyMigrations(filePath string, dsn string) error {
-	m, err := migrate.New(filePath, dsn)
-	if err != nil {
-		return err
-	}
+//go:generate mockgen -destination=mocks/migrator_mock.gen.go -package=mocks . Migrator
+type Migrator interface {
+	Up() error
+	Close() (sourceErr, databaseErr error)
+}
+
+func NewMigrator(filePath string, dsn string) (Migrator, error) {
+	return migrate.New(filePath, dsn)
+}
+
+func ApplyMigrations(m Migrator) error {
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return err

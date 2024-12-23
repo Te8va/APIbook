@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+//go:generate mockgen -destination=mocks/repo_mock.gen.go -package=mocks . BookRepository
 type BookRepository interface {
 	GetBookByID(id string) (Book, error)
 	AddBook(ctx context.Context, newBook Book) (string, error)
